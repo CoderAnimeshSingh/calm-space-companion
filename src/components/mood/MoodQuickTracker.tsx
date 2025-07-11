@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAppStore, MoodType } from '@/store/useAppStore';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import { MoodType } from '@/store/useAppStore';
 import { moodConfig } from '@/utils/moodHelpers';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { Card } from '@/components/ui/card';
 import { Check } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export const MoodQuickTracker = () => {
-  const { addMoodEntry, getTodaysMood } = useAppStore();
-  const todaysMood = getTodaysMood();
+  const { addMoodEntry, moodEntries } = useSupabaseData();
+  
+  // Get today's mood
+  const today = new Date().toDateString();
+  const todaysMood = moodEntries.find(entry => 
+    new Date(entry.timestamp).toDateString() === today
+  );
   
   const [selectedMood, setSelectedMood] = useState<MoodType | null>(todaysMood?.mood || null);
   const [intensity, setIntensity] = useState([todaysMood?.intensity || 5]);
@@ -24,17 +30,14 @@ export const MoodQuickTracker = () => {
     setIsSubmitting(true);
     
     try {
-      addMoodEntry({
+      await addMoodEntry({
         date: new Date().toISOString().split('T')[0],
         mood: selectedMood,
         intensity: intensity[0],
         note: note.trim()
       });
 
-      toast({
-        title: "Mood logged successfully!",
-        description: `Thank you for checking in. Your ${moodConfig[selectedMood].label.toLowerCase()} mood has been recorded.`,
-      });
+      toast.success(`Thank you for checking in. Your ${moodConfig[selectedMood].label.toLowerCase()} mood has been recorded.`);
 
       // Reset form if this wasn't an update
       if (!todaysMood) {
@@ -43,11 +46,7 @@ export const MoodQuickTracker = () => {
         setNote('');
       }
     } catch (error) {
-      toast({
-        title: "Error logging mood",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      toast.error('Error logging mood. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

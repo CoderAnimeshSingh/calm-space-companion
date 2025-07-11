@@ -1,17 +1,35 @@
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAppStore } from '@/store/useAppStore';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { TrendingUp, TrendingDown, Minus, Calendar, BookOpen, Brain } from 'lucide-react';
 
 export const QuickStats = () => {
-  const { moodEntries, journalEntries, chatHistory, getMoodTrend } = useAppStore();
+  const { moodEntries, journalEntries, chatMessages } = useSupabaseData();
+  
+  const getRecentMoods = (days = 7) => {
+    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    return moodEntries.filter(entry => entry.timestamp > cutoff);
+  };
+
+  const getMoodTrend = () => {
+    const recentMoods = getRecentMoods(7);
+    if (recentMoods.length < 2) return 'stable';
+    
+    const firstHalf = recentMoods.slice(0, Math.floor(recentMoods.length / 2));
+    const secondHalf = recentMoods.slice(Math.floor(recentMoods.length / 2));
+    
+    const firstAvg = firstHalf.reduce((sum, entry) => sum + entry.intensity, 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum, entry) => sum + entry.intensity, 0) / secondHalf.length;
+    
+    const difference = secondAvg - firstAvg;
+    
+    if (difference > 0.5) return 'improving';
+    if (difference < -0.5) return 'declining';
+    return 'stable';
+  };
   
   const moodTrend = getMoodTrend();
-  const weeklyMoods = moodEntries.filter(entry => {
-    const entryDate = new Date(entry.timestamp);
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    return entryDate >= weekAgo;
-  });
+  const weeklyMoods = getRecentMoods(7);
 
   const stats = [
     {
@@ -40,7 +58,7 @@ export const QuickStats = () => {
     },
     {
       label: 'AI Conversations',
-      value: Math.floor(chatHistory.length / 2), // Approximate conversations
+      value: Math.floor(chatMessages.length / 2), // Approximate conversations
       icon: Brain,
       color: 'text-mood-calm',
       bgColor: 'bg-mood-calm/10'

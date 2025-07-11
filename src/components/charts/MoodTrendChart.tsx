@@ -9,11 +9,16 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { useAppStore } from '@/store/useAppStore';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
 import { moodConfig } from '@/utils/moodHelpers';
 
 export const MoodTrendChart = () => {
-  const { getRecentMoods } = useAppStore();
+  const { moodEntries } = useSupabaseData();
+  
+  const getRecentMoods = (days = 7) => {
+    const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
+    return moodEntries.filter(entry => entry.timestamp > cutoff);
+  };
   const recentMoods = getRecentMoods(14); // Last 2 weeks
 
   const chartData = recentMoods
