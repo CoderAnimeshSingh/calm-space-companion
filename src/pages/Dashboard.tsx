@@ -127,11 +127,9 @@ export const Dashboard = () => {
           </motion.div>
 
           {/* Recent Journals */}
-          {recentEntries.length > 0 && (
-            <motion.div variants={itemVariants}>
-              <RecentJournals entries={recentEntries} />
-            </motion.div>
-          )}
+          <motion.div variants={itemVariants}>
+            <RecentJournals />
+          </motion.div>
         </div>
       </motion.div>
     </div>

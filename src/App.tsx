@@ -42,19 +42,25 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={
                 <ProtectedRoute>
-                  <Layout><Dashboard /></Layout>
+                  <Layout />
                 </ProtectedRoute>
-              } />
+              }>
+                <Route index element={<Dashboard />} />
+              </Route>
               <Route path="/chat" element={
                 <ProtectedRoute>
-                  <Layout><Chat /></Layout>
+                  <Layout />
                 </ProtectedRoute>
-              } />
+              }>
+                <Route index element={<Chat />} />
+              </Route>
               <Route path="/journal" element={
                 <ProtectedRoute>
-                  <Layout><Journal /></Layout>
+                  <Layout />
                 </ProtectedRoute>
-              } />
+              }>
+                <Route index element={<Journal />} />
+              </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
